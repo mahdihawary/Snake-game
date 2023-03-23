@@ -7,10 +7,13 @@ const boardBorder = "black";
 const boardBackground = "white";
 const snakeCol = "lightblue";
 const snakeBorder = "darkblue";
+let food_x;
+let food_y;
 // Horizontal velocity
 let dx = 10;
 // Vertical velocity
 let dy = 0;
+let score = 0;
 
 let snake = [
   { x: 200, y: 200 },
@@ -21,6 +24,7 @@ let snake = [
 ];
 
 main();
+genFood();
 document.addEventListener("keydown", changeDirection);
 
 // main function called repeatedly to keep the game running
@@ -29,6 +33,7 @@ function main() {
   changingDirection = false;
   setTimeout(function onTick() {
     clearBoard();
+    drawFood();
     moveSnake();
     drawSnake();
     main();
@@ -56,7 +61,17 @@ function drawSnake() {
 function moveSnake() {
   const head = { x: snake[0].x + dx, y: snake[0].y + dy };
   snake.unshift(head);
-  snake.pop();
+  const hasEatenFood = snake[0].x === food_x && snake[0].y === food_y;
+  if (hasEatenFood) {
+    score += 10;
+    // Display score on screen
+    document.querySelector(".Score").innerHTML = score;
+    // Generate new food location
+    genFood();
+  } else {
+    // Remove the last part of snake body
+    snake.pop();
+  }
 }
 
 function changeDirection(event) {
@@ -101,4 +116,24 @@ function hasGameEnded() {
   const hitToptWall = snake[0].y < 0;
   const hitBottomWall = snake[0].y > grid.height - 10;
   return hitLeftWall || hitRightWall || hitToptWall || hitBottomWall;
+}
+
+function randomFood(min, max) {
+  return Math.round((Math.random() * (max - min) + min) / 10) * 10;
+}
+
+function genFood() {
+  food_x = randomFood(0, grid.width - 10);
+  food_y = randomFood(0, grid.height - 10);
+  snake.forEach(function hasSnakeEatenFood(part) {
+    const hasEaten = part.x == food_x && part.y == food_y;
+    if (hasEaten) genFood();
+  });
+}
+
+function drawFood() {
+  gridCtx.fillStyle = "lightgreen";
+  gridCtx.strokestyle = "darkgreen";
+  gridCtx.fillRect(food_x, food_y, 10, 10);
+  gridCtx.strokeRect(food_x, food_y, 10, 10);
 }
